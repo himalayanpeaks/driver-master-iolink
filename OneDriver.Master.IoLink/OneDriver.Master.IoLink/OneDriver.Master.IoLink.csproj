@@ -4,12 +4,13 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	  <RootNamespace>$(SolutionName).$(MSBuildProjectName.Replace(" ", "_"))</RootNamespace>
+	  <PackageIcon>icon.png</PackageIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Master.IoLink.Tmg" Version="2.0.1" />
     <PackageReference Include="OneDriver.Master.Abstract" Version="1.1.0" />
+	  <None Include="icon.png" Pack="true" PackagePath="" />
   </ItemGroup>
 
 </Project>

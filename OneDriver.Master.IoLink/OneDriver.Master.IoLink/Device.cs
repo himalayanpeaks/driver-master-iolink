@@ -6,24 +6,21 @@ using Serilog;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using OneDriver.Framework.Base;
-using OneDriver.Framework.Libs.DeviceDescriptor;
 using OneDriver.Helper;
 using OneDriver.Master.Abstract.Channels;
 using OneDriver.Master.IoLink.Channels;
 using ParameterTool.NSwagClass.Generator.Interface;
-using System.ComponentModel.DataAnnotations;
 using DataType = OneDriver.Helper.Definitions.DataType;
-using System.Xml.Linq;
 
 namespace OneDriver.Master.IoLink
 {
     public class Device : CommonDevice<DeviceParams, SensorParameter>
     {
         private IMasterHAL DeviceHAL { get; set; }
-        public Device(string name, IValidator validator, IMasterHAL deviceHAL, IDeviceDescriptor parameterDatabank) :
+        public Device(string name, IValidator validator, IMasterHAL deviceHAL) :
             base(new DeviceParams(name), validator,
                 new ObservableCollection<BaseChannelWithProcessData<CommonChannelParams<SensorParameter>,
-                    CommonChannelProcessData<SensorParameter>>>(), parameterDatabank)
+                    CommonChannelProcessData<SensorParameter>>>(), new Iodd())
         {
             DeviceHAL = deviceHAL;
             Init();
@@ -142,22 +139,6 @@ namespace OneDriver.Master.IoLink
         }
 
         public override int DisconnectSensor() => (int)DeviceHAL.DisconnectSensorFromMaster();
-
-        private int WriteParameterToSensor(SensorParameter parameter)
-        {
-            int err = 0;
-            try
-            {
-                err = WriteParam(parameter);
-            }
-            catch (Exception e)
-            {
-                Log.Error("Error in " + parameter.Index + " " + err + " " + e);
-                return err;
-            }
-
-            return err;
-        }
 
         protected override string GetErrorAsText(int errorCode)
         {

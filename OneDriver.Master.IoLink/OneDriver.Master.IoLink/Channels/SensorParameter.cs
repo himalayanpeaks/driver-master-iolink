@@ -1,6 +1,5 @@
 ﻿using OneDriver.Helper;
 using OneDriver.Master.Abstract.Channels;
-using OneDriver.Master.Abstract.Contracts;
 
 namespace OneDriver.Master.IoLink.Channels
 {
