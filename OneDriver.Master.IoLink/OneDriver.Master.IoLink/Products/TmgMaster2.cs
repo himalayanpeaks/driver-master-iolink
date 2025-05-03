@@ -1,13 +1,12 @@
 ﻿using OneDriver.Framework.Libs.Announcer;
 using OneDriver.Framework.Libs.Validator;
 using OneDriver.Framework.Module;
-using OneDriver.Master.IoLink.Products;
 using Serilog;
 using System.Runtime.InteropServices;
 using System.Text;
 using static OneDriver.Master.IoLink.Products.Definition;
 
-namespace OneDriver.Master.IoLink.OneDriver.Master.IoLink.Products
+namespace OneDriver.Master.IoLink.Products
 {
     public class TmgMaster2 : DataTunnel<InternalDataHAL>, IMasterHAL
     {
