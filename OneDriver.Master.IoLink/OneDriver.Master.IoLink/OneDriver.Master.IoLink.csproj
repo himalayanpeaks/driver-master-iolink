@@ -9,8 +9,23 @@
 
   <ItemGroup>
     <PackageReference Include="Master.IoLink.Tmg" Version="2.0.1" />
-    <PackageReference Include="OneDriver.Master.Abstract" Version="1.1.0" />
+    <PackageReference Include="Serilog" Version="4.3.0" />
 	  <None Include="icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DeviceDescriptor.Abstract">
+      <HintPath>..\..\..\basic-device-descriptor\DeviceDescriptor\DeviceDescriptor\bin\Debug\net8.0\DeviceDescriptor.Abstract.dll</HintPath>
+    </Reference>
+    <Reference Include="DeviceDescriptor.IoLink">
+      <HintPath>..\..\..\device-descriptor-iolink\DeviceDescriptor.IoLink\DeviceDescriptor.IoLink\bin\Debug\net8.0\DeviceDescriptor.IoLink.dll</HintPath>
+    </Reference>
+    <Reference Include="OneDriver.Framework">
+      <HintPath>..\..\..\OneDriver\OneDriver.Framework\OneDriver.Framework\bin\Debug\net8.0\OneDriver.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="OneDriver.Master.Abstract">
+      <HintPath>..\..\..\driver-master-abstract\OneDriver.Master.Abstract\OneDriver.Master.Abstract\bin\Debug\net8.0\OneDriver.Master.Abstract.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

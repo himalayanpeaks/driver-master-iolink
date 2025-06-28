@@ -6,23 +6,27 @@ using Serilog;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using OneDriver.Framework.Base;
-using OneDriver.Helper;
-using OneDriver.Master.Abstract.Channels;
-using OneDriver.Master.IoLink.Channels;
-using ParameterTool.NSwagClass.Generator.Interface;
-using DataType = OneDriver.Helper.Definitions.DataType;
+using DeviceDescriptor.IoLink.Variables;
+using DeviceDescriptor.Abstract.Variables;
+using DeviceDescriptor.Abstract.Helper;
+using static DeviceDescriptor.Abstract.Definition;
+using DeviceDescriptor.Abstract;
+using DeviceDescriptor.IoLink;
+using DeviceDescriptor.IoLink.Source;
 
 namespace OneDriver.Master.IoLink
 {
-    public class Device : CommonDevice<DeviceParams, SensorParameter>
+    public class Device : CommonDevice<DeviceParams, Variable>
     {
         private IMasterHAL DeviceHAL { get; set; }
-        public Device(string name, IValidator validator, IMasterHAL deviceHAL) :
+        Translator DescriptorTranslator { get; set; }
+        public Device(string name, IValidator validator, IMasterHAL deviceHAL, IDescriptorTranslator<Variable> descriptor) :
             base(new DeviceParams(name), validator,
-                new ObservableCollection<BaseChannelWithProcessData<CommonChannelParams<SensorParameter>,
-                    CommonChannelProcessData<SensorParameter>>>(), new Iodd())
+                new ObservableCollection<BaseChannel<DeviceVariables<Variable>>>()) 
         {
             DeviceHAL = deviceHAL;
+            DescriptorTranslator = new Translator(descriptor);
+            
             Init();
         }
 
@@ -35,8 +39,8 @@ namespace OneDriver.Master.IoLink
 
             for (var i = 0; i < DeviceHAL.NumberOfChannels; i++)
             {
-                var item = new BaseChannelWithProcessData<CommonChannelParams<SensorParameter>,
-                    CommonChannelProcessData<SensorParameter>>(new CommonChannelParams<SensorParameter>("Param_" + i.ToString()), new());
+                var channelParameters = new DeviceVariables<Variable>("Channel_" + i.ToString());
+                var item = new BaseChannel<DeviceVariables<Variable>>(channelParameters);
                 Elements.Add(item);
                 Elements[i].Parameters.PropertyChanged += Parameters_PropertyChanged;
                 Elements[i].Parameters.PropertyChanging += Parameters_PropertyChanging;
@@ -44,25 +48,18 @@ namespace OneDriver.Master.IoLink
         }
 
         private const int HashIndex = 253;
+        private BaseChannel<DeviceVariables<Variable>> item;
+
         private void Parameters_PropertyReadRequested(object sender, PropertyReadRequestedEventArgs e)
         {
             switch (e.PropertyName)
-            {
-                case nameof(CommonChannel<CommonSensorParameter>.Parameters.HashId):
-                    var err = DeviceHAL.ReadRecord(HashIndex, 0, out var readVal,
-                        out _, out _, out _);
-                    if (err == Products.Definition.t_eInternal_Return_Codes.RETURN_OK)
-                    {
-                        byte[] byteArray = readVal.ToArray();
-                        e.Value = BitConverter.ToString(byteArray).Replace("-", "");
-                    }
-                    break;
+            {                
             }
         }
 
         private void ProcessDataChanged(object sender, InternalDataHAL e)
         {
-            var local = Elements[e.ChannelNumber].ProcessData.PdInCollection.FindAll(x => x.Index == e.Index);
+            var local = Elements[e.ChannelNumber].Parameters.ProcessData.ProcessDataInCollection.FindAll(x => x.Index == e.Index);
             foreach (var parameter in local)
                 parameter.Value =
                     DataConverter.MaskByteArray(e.Data, parameter.Offset, parameter.LengthInBits,
@@ -93,29 +90,7 @@ namespace OneDriver.Master.IoLink
             }
         }
         public Products.Definition.t_eInternal_Return_Codes AddProcessDataIndex(int processDataIndex) => DeviceHAL.SetProcessData((ushort)processDataIndex, out var length);
-        protected override void AddData(ParameterDetailsResponse paramDetail, CommonSensorParameter commonParameter)
-        {
-            commonParameter.PropertyChanging += Parameters_PropertyChanging;
-            commonParameter.PropertyChanged += Parameters_PropertyChanged;
-            switch (paramDetail.CategoryName)
-            {
-                case "SpecificParameter":
-                    Elements[Parameters.SelectedChannel].Parameters.SpecificParameterCollection.Add(new SensorParameter(commonParameter));
-                    break;
-                case "StandardParameter":
-                    Elements[Parameters.SelectedChannel].Parameters.StandardParameterCollection.Add(new SensorParameter(commonParameter));
-                    break;
-                case "SystemParameter":
-                    Elements[Parameters.SelectedChannel].Parameters.SystemParameterCollection.Add(new SensorParameter(commonParameter));
-                    break;
-                case "StandardCommand":
-                    Elements[Parameters.SelectedChannel].Parameters.CommandCollection.Add(new SensorParameter(commonParameter));
-                    break;
-                case "ProcessData":
-                    Elements[Parameters.SelectedChannel].ProcessData.PdInCollection.Add(new SensorParameter(commonParameter));
-                    break;
-            }
-        }
+        
 
         private void Parameters_PropertyChanging(object sender, PropertyValidationEventArgs e)
         {
@@ -162,7 +137,7 @@ namespace OneDriver.Master.IoLink
             var err = DeviceHAL.WriteRecord((ushort)index, (byte)subindex, data, out _, out _);
             return (int)err;
         }
-        protected override int ReadParam(SensorParameter param)
+        protected override int ReadParam(Variable param)
         {
             param.Value = null;
             var err = DeviceHAL.ReadRecord(Convert.ToUInt16(param.Index),
@@ -195,7 +170,18 @@ namespace OneDriver.Master.IoLink
             return (int)err;
         }
 
-        protected override int WriteParam(SensorParameter param)
+        public void LoadIodd(string ioddFile)
+        {
+            if (string.IsNullOrEmpty(ioddFile))
+                throw new ArgumentException("IODD file path cannot be null or empty.", nameof(ioddFile));
+            var descriptor = DescriptorTranslator.LoadFromWebAsync(ioddFile, "", "");
+            if (descriptor == null)
+                throw new Exception("Failed to load IODD file: " + ioddFile);
+            else
+                this.Elements[this.Parameters.SelectedChannel].Parameters = descriptor.Variables;
+
+        }
+        protected override int WriteParam(Variable param)
         {
             if (string.IsNullOrEmpty(param.Value))
                 Log.Error(param.Name + " Data null");
@@ -209,6 +195,6 @@ namespace OneDriver.Master.IoLink
                 out _, out _);
         }
 
-        protected override int WriteCommand(SensorParameter command) => WriteParam(command);
+        protected override int WriteCommand(Variable command) => WriteParam(command);
     }
 }

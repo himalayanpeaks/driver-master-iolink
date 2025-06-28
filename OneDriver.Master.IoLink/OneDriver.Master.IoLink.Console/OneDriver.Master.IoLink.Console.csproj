@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="4.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="DeviceDescriptor.Abstract">
+      <HintPath>..\OneDriver.Master.IoLink\bin\Debug\net8.0\DeviceDescriptor.Abstract.dll</HintPath>
+    </Reference>
+    <Reference Include="DeviceDescriptor.IoLink">
+      <HintPath>..\OneDriver.Master.IoLink\bin\Debug\net8.0\DeviceDescriptor.IoLink.dll</HintPath>
+    </Reference>
+    <Reference Include="OneDriver.Framework">
+      <HintPath>..\OneDriver.Master.IoLink\bin\Debug\net8.0\OneDriver.Framework.dll</HintPath>
+    </Reference>
+    <Reference Include="OneDriver.Master.Abstract">
+      <HintPath>..\OneDriver.Master.IoLink\bin\Debug\net8.0\OneDriver.Master.Abstract.dll</HintPath>
+    </Reference>
+    <Reference Include="OneDriver.Master.IoLink">
+      <HintPath>..\OneDriver.Master.IoLink\bin\Debug\net8.0\OneDriver.Master.IoLink.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
